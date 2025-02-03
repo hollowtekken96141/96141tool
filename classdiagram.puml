@@ -1,0 +1,76 @@
+@startuml classdiagram
+!define RECTANGLE class
+
+RECTANGLE Scene {
+  +id: int
+  +name: string
+  +gif: string
+  +areas: Area[]
+  +addArea(area: Area): void
+  +removeArea(area: Area): void
+}
+
+RECTANGLE Area {
+  +id: int
+  +scene_id: int
+  +top: string
+  +left: string
+  +width: string
+  +height: string
+  +target: string
+  +new_tab: boolean
+  +transition_gif: string
+  +transition_duration: int
+  +target_type: string
+}
+
+RECTANGLE SceneEditor {
+  +scenes: Scene[]
+  +currentScene: Scene
+  +initializeScenes(): void
+  +addScene(name: string): void
+  +deleteScene(scene: Scene): void
+  +renameScene(scene: Scene, newName: string): void
+  +uploadGif(scene: Scene, gif: string): void
+  +displayScene(scene: Scene): void
+  +selectScene(name: string): void
+}
+
+RECTANGLE AreaEditor {
+  +initializeAreas(scene: Scene): void
+  +saveSceneAreas(scene: Scene): void
+  +addClickableArea(scene: Scene): void
+  +loadAreasForScene(scene: Scene): void
+  +editArea(area: Area): void
+}
+
+RECTANGLE Utils {
+  +updateSceneSelector(): void
+  +updateTargetStateOptions(): void
+  +selectScene(name: string): void
+  +clearClickableAreas(): void
+  +toggleTargetInput(): void
+  +createClickableArea(areaData: object): Area
+  +initDrag(event: Event): void
+  +initResize(event: Event): void
+  +clearStorage(): void
+}
+
+RECTANGLE EventListeners {
+  +initializeEventListeners(): void
+}
+
+RECTANGLE Exporter {
+  +exportGame(title: string, backgroundData: string): void
+  +fetchScenesData(): object
+  +generateHtmlContent(scenesData: object, title: string, backgroundData: string): string
+}
+
+SceneEditor "1" -- "0..*" Scene
+Scene "1" -- "0..*" Area
+SceneEditor "1" -- "1" AreaEditor
+SceneEditor "1" -- "1" Utils
+SceneEditor "1" -- "1" EventListeners
+SceneEditor "1" -- "1" Exporter
+AreaEditor "1" -- "0..*" Area
+@enduml

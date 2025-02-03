@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <title>tekken webventure tool</title>
+    <style>
+        body {
+            background: url('assets/gifs/starwars.gif') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .editor-container {
+            position: relative;
+            width: 100%;
+            max-width: 375px; /* Mobile size width */
+            height: 667px; /* Mobile size height */
+            overflow: hidden;
+            background-color: white;
+            z-index: 1;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .editor {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 1;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat; /* Ensure the background does not repeat */
+        }
+
+        .clickable-area {
+            position: absolute;
+            border: 2px dashed rgba(255, 0, 0, 0.7);
+            background-color: rgba(255, 0, 0, 0.1);
+            cursor: move;
+            min-width: 50px;
+            min-height: 50px;
+        }
+
+        .clickable-area:hover {
+            border-color: rgba(255, 0, 0, 1);
+            background-color: rgba(255, 0, 0, 0.2);
+        }
+
+        .clickable-area button {
+            position: absolute;
+            top: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 2px 5px;
+            z-index: 10;
+        }
+
+        .clickable-area .edit-button {
+            right: 25px;
+            z-index: 11;
+        }
+
+        .clickable-area .delete-button {
+            right: 5px;
+            z-index: 11;
+        }
+
+        .edit-button, .delete-button {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            cursor: pointer;
+            margin: 2px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background-color: rgba(255, 0, 0, 0.7);
+            cursor: se-resize;
+            z-index: 12;
+        }
+
+        .area-form {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            width: 250px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 100; /* Add this line to ensure form appears above editor */
+        }
+
+        .area-form label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        .area-form select,
+        .area-form input[type="text"],
+        .area-form input[type="number"],
+        .area-form input[type="file"] {
+            width: 100%;
+            padding: 5px;
+            margin-top: 5px;
+        }
+
+        .area-form button {
+            margin-top: 15px;
+            margin-right: 10px;
+        }
+
+        .scene-gif {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                width: 100%;
+                font-size: 14px;
+            }
+            
+            .area-form {
+                right: 0;
+                width: auto;
+                left: 0;
+                margin: 10px;
+            }
+        }
+
+        #state-target,
+        #external-target {
+            margin: 10px 0;
+        }
+
+        #target-link {
+            width: 100%;
+        }
+
+        /* Styles for export options submenu */
+        .export-options {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            width: 300px;
+            display: none;
+        }
+
+        .export-options label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        .export-options input[type="text"],
+        .export-options input[type="file"] {
+            width: 100%;
+            padding: 5px;
+            margin-top: 5px;
+        }
+
+        .export-options button {
+            margin-top: 15px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <input type="file" id="upload-gif" accept="image/gif" multiple>
+        <button id="add-scene-button">Add Scene</button>
+        <button id="delete-scene-button">Delete Scene</button>
+        <button id="rename-scene-button">Rename Scene</button>
+        <button id="add-clickable-area">Add Clickable Area</button>
+        <button id="clear-storage-button">Clear</button> <!-- Ensure clear button is present -->
+        <button id="export-game-button">Export</button> <!-- Ensure export button is present -->
+        <select id="scene-selector"></select>
+        <button id="export-data-button">Export Data</button>
+        <input type="file" id="import-data-input" style="display: none;">
+        <button id="import-data-button">Import Data</button>
+    </div>
+    <div class="editor-container">
+        <div class="editor" id="editor"></div>
+    </div>
+    <div class="area-form">
+        <label for="target-type">Target Type:</label>
+        <select id="target-type">
+            <option value="state">Scene</option>
+            <option value="external">External Link</option>
+        </select>
+        <div id="state-target">
+            <label for="target-state">Target Scene:</label>
+            <select id="target-state"></select>
+        </div>
+        <div id="external-target">
+            <label for="target-link">External Link:</label>
+            <input type="text" id="target-link" placeholder="https://...">
+        </div>
+        <label for="new-tab">Open in new tab:</label>
+        <input type="checkbox" id="new-tab">
+        <label for="transition-gif">Transition GIF:</label>
+        <input type="file" id="transition-gif" accept="image/gif">
+        <p id="transition-gif-text">No GIF set</p> <!-- Ensure this element is present -->
+        <button id="save-area">Save</button>
+        <button id="close-area-form">Close</button>
+    </div>
+    <div class="export-options" id="export-options">
+        <label for="export-title">Page Title:</label>
+        <input type="text" id="export-title" placeholder="Enter page title">
+        <label for="export-background">Background Image/GIF:</label>
+        <input type="file" id="export-background" accept="image/*">
+        <button id="confirm-export-button">Confirm Export</button>
+        <button id="cancel-export-button">Cancel</button>
+    </div>
+    <script type="module">
+        // Import necessary modules
+        import { SceneEditor } from './sceneEditor.js';
+        import { AreaEditor } from './areaEditor.js';
+        import { EventListeners } from './eventListeners.js';
+        import { Exporter } from './exporter.js';
+
+        // Initialize the main components
+        document.addEventListener('DOMContentLoaded', function() {
+            const sceneEditor = new SceneEditor();
+            const areaEditor = new AreaEditor(sceneEditor);
+            const eventListeners = new EventListeners(sceneEditor, areaEditor);
+            const exporter = new Exporter(sceneEditor);
+
+            sceneEditor.initializeScenes();
+            areaEditor.initializeAreas();
+            eventListeners.initializeEventListeners();
+
+            // Export and Import event listeners
+            document.getElementById('export-data-button').addEventListener('click', () => exporter.exportData());
+            document.getElementById('import-data-button').addEventListener('click', () => {
+                document.getElementById('import-data-input').click();
+            });
+            document.getElementById('import-data-input').addEventListener('change', (event) => exporter.importData(event));
+        });
+    </script>
+</body>
+</html>
